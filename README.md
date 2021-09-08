@@ -6,3 +6,5 @@
 - check_db_logfile
 
 - yunqiao_reinstall
+
+- daily_operation_maintenance
