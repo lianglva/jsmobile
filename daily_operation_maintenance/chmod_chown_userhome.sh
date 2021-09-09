@@ -8,6 +8,7 @@
 # 操作系统：linux							 #
 # 复核人：                                   #
 #********************************************#
+SCRIPTS_PATH=`dirname $0`
 #用户名
 USER_NAME="lvliang"
 
@@ -16,6 +17,14 @@ AUTHORRITY=""
 
 #家目录属组和属主，比如root:root ,如果不填则不修改
 GROUP_USER=""
+
+#设置邮件
+#邮件标题
+MAIL_TITLE="变更用户$USER_NAME通知"
+#邮件正文
+MAIL_TEXT="修改用户$USER_NAME家目录成功。\n修改用户$USER_NAME权限成功。"
+#邮件附件
+MAIL_ATTACH_FILE=$SCRIPTS_PATH/create.sh
 
 function check_user()
 {
@@ -75,3 +84,8 @@ function main()
 	fi
 }
 main $@
+
+#发送邮件
+if [ $? -eq 0 ];then
+	echo -e $MAIL_TEXT | mail -s $MAIL_TITLE -a $MAIL_ATTACH_FILE ys.lvliang@h3c.com
+fi
