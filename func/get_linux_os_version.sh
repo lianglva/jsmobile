@@ -8,7 +8,7 @@
 # 操作系统：linux							 #
 # 复核人：                                   #
 #********************************************#
-function judge_linux_os_type()
+function get_linux_os_type()
 {
 	cat /proc/version > /dev/null 2>&1
 	if [ $? -eq 0 ];then
@@ -28,24 +28,24 @@ function judge_linux_os_type()
 	
 	case ${linux_os} in
 		"redhat")
-			local redhat_os=`cat /etc/redhat-release | awk '{print $7}'`
+			redhat_os=`cat /etc/redhat-release | awk '{print $7}'`
 			#redhat 7.6
 			echo ${linux_os} ${redhat_os}
-			local sub_redhat_os=`echo ${redhat_os} | awk -F'.' '{print $1}'`
+			sub_redhat_os=`echo ${redhat_os} | awk -F'.' '{print $1}'`
 			echo ${sub_redhat_os}
 			;;
 		"suse")
-			local suse_os=`lsb_release -r | awk -F' ' '{print $2}'`
+			suse_os=`lsb_release -r | awk -F' ' '{print $2}'`
 			#suse 12.3
 			echo ${linux_os} ${suse_os}
-			local sub_suse_os=`echo ${suse_os} | awk -F'.' '{print $1}'`
+			sub_suse_os=`echo ${suse_os} | awk -F'.' '{print $1}'`
 			echo ${sub_suse_os}
 			;;
 		"centos")
-			local centos_os=`cat /etc/redhat-release`
+			centos_os=`cat /etc/redhat-release`
 			#CentOS Linux release 7.9.2009 (Core)
 			echo ${centos_os}
-			local sub_centos_os=`echo ${centos_os} | sed "s/.*release\b\s\+\([0-9.]\+\)/\1/" | awk -F'.' '{print $1}'`
+			sub_centos_os=`echo ${centos_os} | sed "s/.*release\b\s\+\([0-9.]\+\)/\1/" | awk -F'.' '{print $1}'`
 			echo ${sub_centos_os}
 			;;
 		*)
@@ -53,8 +53,3 @@ function judge_linux_os_type()
 			;;
 	esac
 }
-function main()
-{
-	judge_linux_os_type
-}
-main $@
