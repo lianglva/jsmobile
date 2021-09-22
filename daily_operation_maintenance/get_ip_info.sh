@@ -13,9 +13,45 @@
 
 # 捞取ip地址
 SCRIPYT_PATH=`dirname $0`
-. ../func/*
+. $SCRIPYT_PATH/../func/*
+
+function get_ip_info_redhat7()
+{
+	arr_interface=(`ifconfig -a | awk '/^[^ ]/&&/:/{print}' | awk -F':' '{print $1}'`)
+	arr_ip_address=(`ifconfig -a | awk '/^[^ ]/&&/:/{getline nextline;print nextline}' | sed -r "s/.*inet\s+(\S+)\s+.*/\1/"`)
+	arr_netmask=(`ifconfig -a | awk '/^[^ ]/&&/:/{getline nextline;print nextline}' | sed -r "s/.*netmask\s+(\S+)\s*.*/\1/"`)
+	
+	#
+	printf "%-10s %-16s %-15s\n" Interface IpAddress Netmask
+	for((i=0;i<${#arr_interface[@]};i++))
+	do
+		printf "%-10s %-16s %-15s\n" ${arr_interface[i]} ${arr_ip_address[i]} ${arr_netmask[i]}
+	done
+}
 function main()
 {
-	./get_linux_os_version.sh
+	get_linux_os_type
+	# echo $linux_os
+	# echo $sub_redhat_os
+	case ${linux_os} in
+		"redhat")
+			case ${sub_redhat_os} in
+				"6")
+					echo "does not support redhat6 now." && return 1
+					;;
+				"7")
+					get_ip_info_redhat7
+					;;
+			esac
+			;;
+		"suse")
+			echo "does not support suse now." && return 1
+			;;
+		"centos")
+			echo "does not support centos now." && return 1
+			;;
+		*)
+			echo "does not support ${linux_os} now." && return 1
+	esac
 }
 main $@
