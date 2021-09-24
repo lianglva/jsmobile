@@ -2,8 +2,7 @@
 服务器性能数据分析
 pandas处理excel文件效率太低了，废弃
 """
-import os
-import os.path
+import os, os.path, time
 import numpy as np
 import pandas as pd
 import openpyxl
@@ -33,10 +32,10 @@ def main():
         inputPathFile = workdir + "\\input\\" + excel_file
         if inputPathFile.endswith('xlsx'):
             inputPathFileList.append(inputPathFile)
-        #获取一次xlsx文件的总行数，默认所有文件行数一样
-        if max_line == 0:
-            df = pd.read_excel(inputPathFile)
-            max_line = len(df.index.values)
+            #获取一次xlsx文件的总行数，默认所有文件行数一样
+            if max_line == 0:
+                df = pd.read_excel(inputPathFile)
+                max_line = len(df.index.values)
 
     writer = pd.ExcelWriter(outputPathFile)
     for i in range(0,max_line):    #test
@@ -75,4 +74,7 @@ def main():
     writer.save()
 
 if __name__ == "__main__":
+    t0 = time.time()
     main()
+    t1 = time.time()
+    print("运行耗时：%.2f s" % (t1 - t0))
