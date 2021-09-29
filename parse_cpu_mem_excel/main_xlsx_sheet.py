@@ -6,8 +6,7 @@
 import os, os.path, time
 import numpy as np
 import pandas as pd
-import openpyxl
-from func.commonFunc import calcRowNum, letterToNum
+from func.sendEmail import send_email
 workdir = os.getcwd()
 inputDir = workdir + "\\input"
 outputDir = workdir + "\\output"
@@ -25,6 +24,8 @@ selectColumnLetter = ('F', 'G', 'L', 'M', 'Q', 'R')
 # file2 = "D:\\github\\jsmobile\\parse_cpu_mem_excel\\input\\cmmerge1-20210914.xlsx"
 def calc_avg(input_list) -> float:
     i_sum = 0
+    if len(input_list) == 0:
+        return ""
     for number in input_list:
         i_sum = i_sum + number
     result = i_sum/len(input_list)
@@ -37,7 +38,10 @@ def xlsx_merge():
         daily_xlsx_file = inputDir + "\\" + f
         if daily_xlsx_file.endswith(".xlsx"):
             daily_df = pd.read_excel(daily_xlsx_file)
-            daily_df.drop(drop_column,axis=1,inplace=True)
+            #删除多余列
+            daily_df.drop(columns=drop_column,axis=1,inplace=True)
+            #删除多余行
+            daily_df.drop(index=[i for i in range(5,20225)],axis=0,inplace=True)
             daily_df.to_excel(writer, sheet_name=str(sheet), index=False)
             sheet += 1
     writer.save()
@@ -66,10 +70,14 @@ def xlsx_analysis():
                 temp_list.append(data[sheet].iloc[line,0])
             if len(temp_list) == 1:
                 temp_list.append(data[sheet].iloc[line,1])
-            cpu_avg_list.append(data[sheet].iloc[line,2])
-            cpu_max_list.append(data[sheet].iloc[line,3])
-            memory_avg_list.append(data[sheet].iloc[line,4])
-            memory_max_list.append(data[sheet].iloc[line,5])
+            if not pd.isna(data[sheet].iloc[line,2]):
+                cpu_avg_list.append(data[sheet].iloc[line,2])
+            if not pd.isna(data[sheet].iloc[line,3]):
+                cpu_max_list.append(data[sheet].iloc[line,3])
+            if not pd.isna(data[sheet].iloc[line, 4]):
+                memory_avg_list.append(data[sheet].iloc[line,4])
+            if not pd.isna(data[sheet].iloc[line, 5]):
+                memory_max_list.append(data[sheet].iloc[line,5])
         # 求平均
         cpu_avg = calc_avg(cpu_avg_list)
         cpu_max = calc_avg(cpu_max_list)
@@ -93,9 +101,10 @@ def main():
     if not os.path.exists(cmmerge_file):
         xlsx_merge()
 
-    # xlsx_analysis()
+    xlsx_analysis()
 if __name__ == "__main__":
     t0 = time.time()
     main()
     t1 = time.time()
     print("总运行耗时：%.2f s" % (t1 - t0))
+    send_email(outputFile)
