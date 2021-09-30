@@ -6,12 +6,13 @@
 import os, os.path, time
 import numpy as np
 import pandas as pd
+from func.commonFunc import calc_spent_time
 from func.sendEmail import send_email
 workdir = os.getcwd()
 inputDir = workdir + "\\input"
 outputDir = workdir + "\\output"
 cmmerge_file = inputDir + "\\merge\\cmmerge_sheet.xlsx"
-outputFile = outputDir + "\\output.xlsx"
+outputFile = ""
 
 inputPathFileList = []
 columnName = ["名称", "IP地址IPv4", "CPUAVG", "CPUMAX", "memoryAVG", "memoryAVG"]
@@ -22,6 +23,26 @@ selectColumnLetter = ('F', 'G', 'L', 'M', 'Q', 'R')
 
 # file1 = "D:\\github\\jsmobile\\parse_cpu_mem_excel\\input\\cmmerge1-20210913.xlsx"
 # file2 = "D:\\github\\jsmobile\\parse_cpu_mem_excel\\input\\cmmerge1-20210914.xlsx"
+def check_xlsx():
+    xlsx_list = []
+    file_date = ""
+    # now_time = time.strftime("%Y%m",time.localtime())
+    for f in os.listdir(inputDir):
+        if f.startswith("cmmerge1-") and f.endswith(".xlsx"):
+            if file_date == "":
+                file_date = f[9:15]
+                xlsx_list.append(f)
+            elif len(file_date) == 6:
+                if f[9:15] == file_date:
+                    xlsx_list.append(f)
+                else:
+                    print(f + " : 文件日期不对！")
+                    error = Exception("文件日期不对")
+                    raise error
+    global outputFile
+    outputFile = outputDir + "\\" + "output_" + file_date + ".xlsx"
+    return xlsx_list
+
 def calc_avg(input_list) -> float:
     i_sum = 0
     if len(input_list) == 0:
@@ -31,21 +52,21 @@ def calc_avg(input_list) -> float:
     result = i_sum/len(input_list)
     return "%.8f" % result
 
-def xlsx_merge():
+@calc_spent_time
+def xlsx_merge(xlsx_list):
     writer = pd.ExcelWriter(cmmerge_file)
     sheet = 0
-    for f in os.listdir(inputDir):
+    for f in xlsx_list:
         daily_xlsx_file = inputDir + "\\" + f
         if daily_xlsx_file.endswith(".xlsx"):
             daily_df = pd.read_excel(daily_xlsx_file)
             #删除多余列
             daily_df.drop(columns=drop_column,axis=1,inplace=True)
-            #删除多余行
-            daily_df.drop(index=[i for i in range(5,20225)],axis=0,inplace=True)
             daily_df.to_excel(writer, sheet_name=str(sheet), index=False)
             sheet += 1
     writer.save()
 
+@calc_spent_time
 def xlsx_analysis():
     merge_df = pd.io.excel.ExcelFile(cmmerge_file)
     data = {}
@@ -58,7 +79,6 @@ def xlsx_analysis():
 
     writer = pd.ExcelWriter(outputFile)
     for line in range(max_length):
-        print("Line: "+ str(line))
         temp_list = []
         cpu_avg_list = []
         cpu_max_list = []
@@ -97,14 +117,16 @@ def xlsx_analysis():
         if line > 0:
             df_data.to_excel(writer, 'Sheet1', header=False, index=False, startrow=line + 1)
     writer.save()
-def main():
-    if not os.path.exists(cmmerge_file):
-        xlsx_merge()
 
+def process():
+    # 表格校验
+    xlsx_list = check_xlsx()
+    # 多表合并
+    if not os.path.exists(cmmerge_file):
+        xlsx_merge(xlsx_list)
+    # 数据分析
     xlsx_analysis()
+
 if __name__ == "__main__":
-    t0 = time.time()
-    main()
-    t1 = time.time()
-    print("总运行耗时：%.2f s" % (t1 - t0))
+    process()
     send_email(outputFile)

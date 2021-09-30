@@ -4,7 +4,9 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from func.commonFunc import calc_spent_time
 
+@calc_spent_time
 def send_email(file):
     output_file = file
     #设置服务器所需信息

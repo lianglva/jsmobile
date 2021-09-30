@@ -1,5 +1,5 @@
 # provide common function
-
+import time
 def calcRowNum(row) -> int:
     return row - 2
 
@@ -34,3 +34,10 @@ def letterToNum(letter) -> int:
     }
     return dictLetterNum[letter]
 
+def calc_spent_time(func):
+    def calc_spent(*args, **kwargs):
+        tt0 = time.time()
+        func(*args, **kwargs)
+        tt1 = time.time()
+        print(func.__name__ + " : " + "%.2f s" %(tt1 - tt0))
+    return calc_spent
