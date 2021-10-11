@@ -5,10 +5,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from func.commonFunc import calc_spent_time
+import os.path
 
 @calc_spent_time
 def send_email(file):
     output_file = file
+    file_name = os.path.basename(output_file)
     #设置服务器所需信息
     #163邮箱服务器地址
     mail_host = 'smtp.qq.com'
@@ -37,7 +39,7 @@ def send_email(file):
     att1 = MIMEText(open(output_file, 'rb').read(), 'base64', 'utf-8')
     att1["Content-Type"] = 'application/octet-stream'
     # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-    att1["Content-Disposition"] = 'attachment; filename="output.xlsx"'
+    att1["Content-Disposition"] = 'attachment; filename='+ file_name
     message.attach(att1)
 
     #登录并发送邮件

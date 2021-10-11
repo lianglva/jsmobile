@@ -41,3 +41,7 @@ def calc_spent_time(func):
         tt1 = time.time()
         print(func.__name__ + " : " + "%.2f s" %(tt1 - tt0))
     return calc_spent
+
+def trans_path(path):
+    path = path.replace('\\','\\\\')
+    return path

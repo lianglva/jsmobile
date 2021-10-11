@@ -1,11 +1,15 @@
 """
+功能：将1w多台设备一个月的cpu品均值，cpu最大值，内存平均值，内存最大值整合算平均
+
 将多表作为sheet合入一个表格
 使用ExcelFile类提升效率
 """
 
-import os, os.path, time
+import os, os.path
 import numpy as np
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 from func.commonFunc import calc_spent_time
 from func.sendEmail import send_email
 workdir = os.getcwd()
@@ -118,14 +122,33 @@ def xlsx_analysis():
             df_data.to_excel(writer, 'Sheet1', header=False, index=False, startrow=line + 1)
     writer.save()
 
+@calc_spent_time
+def set_style():
+    wb = load_workbook(outputFile)
+    ws = wb["Sheet1"]
+    for i in ws.rows:
+        for j in i:
+            if j.value is None:
+                j.fill = PatternFill('solid', fgColor='ffff00') #黄色
+    ws.column_dimensions['A'].width = 13
+    ws.column_dimensions['B'].width = 30
+    for col in ['C','D','E','F']:
+        ws.column_dimensions[col].width = 12.91
+
+    wb.save(outputFile)
+
 def process():
     # 表格校验
     xlsx_list = check_xlsx()
     # 多表合并
-    if not os.path.exists(cmmerge_file):
-        xlsx_merge(xlsx_list)
+    if os.path.exists(cmmerge_file):
+        os.remove(cmmerge_file)
+    xlsx_merge(xlsx_list)
     # 数据分析
     xlsx_analysis()
+
+    #添加单元格样式
+    set_style()
 
 if __name__ == "__main__":
     process()
